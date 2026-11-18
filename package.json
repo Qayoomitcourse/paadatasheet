@@ -1,0 +1,7 @@
+{
+  "name": "paa-data-sheet",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": "20.x" },
+  "dependencies": { "@sanity/client": "^6.24.0" }
+}

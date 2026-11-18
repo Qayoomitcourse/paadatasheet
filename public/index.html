@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PAA Airports Data Sheet for SVOs</title>
+<style>
+:root{--bg:#EEF3FA;--card:#fff;--ink:#1B2A41;--navy:#1F3A5F;--blue:#8DB3E2;--mid:#4F81BD;--line:#C9D8EC;--tint:#EAF1FA;--ok:#1E7A4A;--onnavy:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1724;--card:#182235;--ink:#E6EDF7;--navy:#0B1220;--blue:#3C5F91;--mid:#8DB3E2;--line:#2C3C58;--tint:#1E2B44;--ok:#5FD39A}}
+:root[data-theme="dark"]{--bg:#0F1724;--card:#182235;--ink:#E6EDF7;--navy:#0B1220;--blue:#3C5F91;--mid:#8DB3E2;--line:#2C3C58;--tint:#1E2B44;--ok:#5FD39A}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Arial,Helvetica,sans-serif;padding-bottom:96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--navy);z-index:10}
+header{background:var(--navy);color:var(--onnavy);padding:18px 16px 16px;position:relative;overflow:hidden;border-bottom:5px solid var(--blue)}
+header small{color:var(--blue);font-weight:700;letter-spacing:.08em;font-size:11px}
+header h1{margin:4px 0 2px;font-size:24px}
+header p{margin:0;color:#CFE0F5;font-size:13px}
+.wrap{max-width:640px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 12px;overflow:hidden}
+.card h2{margin:0;padding:10px 12px;background:var(--blue);color:#10243F;font-size:16px;display:flex;align-items:center;gap:10px}
+:root[data-theme="dark"] .card h2{color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card h2{color:#fff}}
+.n{background:var(--navy);color:#fff;border-radius:50%;min-width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;padding:0 4px}
+.body{padding:10px 12px 12px;display:grid;gap:12px}
+.hint{font-size:12.5px;color:var(--mid);font-style:italic;margin:0}
+label.l,.l{display:block;font-weight:700;font-size:13.5px;margin-bottom:5px;color:var(--ink)}
+input[type=text],input[type=number],textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--tint);color:var(--ink);outline:none}
+input:focus,textarea:focus{border-color:var(--mid)}
+textarea{min-height:76px;resize:vertical}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg label{flex:1 1 120px;position:relative}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0}
+.seg span{display:block;text-align:center;padding:12px 8px;border:1.5px solid var(--line);border-radius:10px;background:var(--tint);font-weight:700;font-size:14px}
+.seg input:checked+span{background:var(--navy);color:#fff;border-color:var(--navy)}
+:root[data-theme="dark"] .seg input:checked+span{background:var(--mid);color:#0B1220;border-color:var(--mid)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg input:checked+span{background:var(--mid);color:#0B1220;border-color:var(--mid)}}
+.seg input:focus-visible+span{outline:2px solid var(--mid)}
+.top .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.top p{margin:0 0 -4px;font-size:13px;color:var(--mid);font-weight:700}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:center;z-index:20}
+.bar .prog{font-size:12px;color:var(--mid);font-weight:700;flex:0 0 auto;min-width:56px;text-align:center;line-height:1.2}
+button{font:inherit;font-weight:700;font-size:15px;border:0;border-radius:10px;padding:13px 14px;cursor:pointer}
+.pri{background:var(--navy);color:#fff;flex:1}
+:root[data-theme="dark"] .pri{background:var(--mid);color:#0B1220}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pri{background:var(--mid);color:#0B1220}}
+.sec{background:var(--tint);color:var(--ink);border:1.5px solid var(--line)}
+#out{width:100%;min-height:260px;font:13px/1.45 ui-monospace,Menlo,monospace;background:var(--tint);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:10px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{flex:1 1 120px}.h{border:1.5px solid var(--line);border-radius:10px;padding:10px;background:var(--tint)}.h b{display:block}.h small{color:var(--mid)}.h .acts{margin-top:8px}.h button{padding:9px 8px;font-size:13px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+.lr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px}.lr .l{margin-bottom:0}
+.fl{padding:4px 10px;font-size:12px;border:1.5px solid var(--line);background:transparent;color:var(--mid);border-radius:14px;white-space:nowrap;flex:0 0 auto}
+.flag .fl{background:#C62828;border-color:#C62828;color:#fff}.flag .l{color:#C62828}
+.flag input[type=text],.flag textarea{border-color:#C62828;background:#FDECEC;color:#1B2A41}.flag .seg span{border-color:#C62828}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .flag .l{color:#FF8A8A}:root:not([data-theme="light"]) .flag input[type=text],:root:not([data-theme="light"]) .flag textarea{background:#3A1E22;color:#E6EDF7}}
+:root[data-theme="dark"] .flag .l{color:#FF8A8A}:root[data-theme="dark"] .flag input[type=text],:root[data-theme="dark"] .flag textarea{background:#3A1E22;color:#E6EDF7}
+.legend{font-size:13px;color:#C62828;font-weight:700;margin:0 0 12px}
+</style>
+</head>
+<body>
+<header>
+  <small>PAKISTAN AIRPORTS AUTHORITY</small>
+  <h1>Airports Data Sheet</h1>
+  <p>For SVOs · fill on your phone, generate the PDF, share it on WhatsApp</p>
+</header>
+<div class="wrap">
+  <div class="card top"><h2>Airport &amp; duration</h2><div class="body">
+    <div><label class="l" for="airport">Airport name</label><input type="text" id="airport" data-k="airport" autocomplete="off" placeholder="e.g. JIAP Karachi"></div>
+    <p>Duration: from 0800 hrs to 0800 hrs</p>
+    <div class="row">
+      <div><label class="l" for="d1">From (Nov 2026)</label><input type="number" inputmode="numeric" id="d1" data-k="d1" placeholder="Day"></div>
+      <div><label class="l" for="d2">To (Nov 2026)</label><input type="number" inputmode="numeric" id="d2" data-k="d2" placeholder="Day"></div>
+    </div>
+  </div></div>
+  <p class="legend">Tap “Flag” on any entry to mark it in red as significant or non-compliance. Flagged entries print in red in the PDF.</p>
+  <div id="items"></div>
+  <div class="card"><h2>Report</h2><div class="body">
+    <textarea id="out" readonly placeholder="Tap “Build report” to preview the text report here."></textarea>
+    <div class="acts"><button class="pri" id="b-pdf">Generate PDF &amp; share</button></div><div class="acts"><button class="sec" id="b-build">Preview text</button><button class="sec" id="b-wa">Share text</button><button class="sec" id="b-copy">Copy text</button></div>
+  </div></div>
+<div class="card"><h2>Saved reports</h2><div class="body"><p class="hint" id="hmsg">Loading…</p><div id="hist" style="display:grid;gap:10px"></div></div></div>
+</div>
+<div class="bar">
+  <div class="prog" id="prog">0/0</div>
+  <button class="sec" id="b-clear">Clear</button>
+  <button class="pri" id="b-share">PDF &amp; Share</button>
+</div>
+<div id="toast" role="status"></div>
+<script>
+var SA=["S/A","U/S"];
+var ITEMS=[
+{t:"WIFI",h:"Speed should be mentioned in real-time figures",f:[["n","Max speed in Mbps"],["n","Min speed in Mbps"]]},
+{t:"Helpdesks",h:"Provide figures only",f:[["n","Total Number of Helpdesks"],["n","Number of Helpdesks manned"]]},
+{t:"Catering / Food",h:"Provide figures only",f:[["n","Total Number of Food Outlets around the airport"],["s","Quality, Hygiene and Pricing",["Satisfactory","Unsatisfactory"]],["a","Outlet name(s), if unsatisfactory"]]},
+{t:"Washrooms / Toilets",h:"Provide figures only",f:[["n","Total"],["s","Condition",["Clean and satisfactory","Not satisfactory"]]]},
+{t:"Wheelchairs",h:"Provide figures only",f:[["n","Total (possessed by PAA, Airlines, GHAs etc)"],["n","Availability during flight"],["s","Condition",SA]]},
+{t:"Baggage Trollies",h:"Provide figures only",f:[["n","Total"],["n","Availability during flight"],["s","Condition",SA]]},
+{t:"Belt Operation",h:"",f:[["s","Serviceability",["Yes (S/A)","No (U/S)"]]]},
+{t:"Baggage Security",h:"",f:[["s","Presence of ASF, Airline Security in baggage make-up area",["Yes","No"]]]},
+{t:"Other Relevant Observations",h:"",f:[["a","Elevator malfunctioning, congestion, mal-practices (if any)"]]},
+{t:"SLA Staff Manpower",h:"Company / firm name with total number of staff deployed",f:[["a","E & M Section (Drivers, Electricians, AC etc)"],["a","Civil Section (Welding / Plumbing)"],["a","APS Section: Janitorial / Sweepers etc"],["a","Vigilance Section: PSGs"],["a","IT Section: Helpdesk staff"],["a","HR Section: Runners / Qasids"],["a","CNS Section: staff for Eqpt maintenance such as Radar, Motorola devices etc"],["a","Any other SLA staff"]]}
+];
+var KEY="paa_sheet_v1", state={};
+try{state=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){state={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+function FLB(k){return '<button type="button" class="fl" data-fl="'+k+'">Flag</button>'}
+var html="", keys=[];
+ITEMS.forEach(function(it,i){
+  html+='<section class="card"><h2><span class="n">'+(i+1)+'</span>'+esc(it.t)+'</h2><div class="body">';
+  if(it.h) html+='<p class="hint">'+esc(it.h)+'</p>';
+  it.f.forEach(function(f,j){
+    var k="i"+i+"_"+j; keys.push(k);
+    if(f[0]==="s"){
+      html+='<div data-w="'+k+'"><div class="lr"><span class="l">'+esc(f[1])+'</span>'+FLB(k)+'</div><div class="seg">';
+      f[2].forEach(function(o,q){html+='<label><input type="radio" name="'+k+'" data-k="'+k+'" value="'+esc(o)+'"><span>'+esc(o)+'</span></label>'});
+      html+='</div></div>';
+    }else if(f[0]==="a"){
+      html+='<div data-w="'+k+'"><div class="lr"><label class="l" for="'+k+'">'+esc(f[1])+'</label>'+FLB(k)+'</div><textarea id="'+k+'" data-k="'+k+'"></textarea></div>';
+    }else{
+      html+='<div data-w="'+k+'"><div class="lr"><label class="l" for="'+k+'">'+esc(f[1])+'</label>'+FLB(k)+'</div><input type="text" inputmode="decimal" id="'+k+'" data-k="'+k+'" autocomplete="off"></div>';
+    }
+  });
+  html+='</div></section>';
+});
+document.getElementById("items").innerHTML=html;
+var all=["airport","d1","d2"].concat(keys);
+function apply(){
+  document.querySelectorAll("[data-k]").forEach(function(el){
+    var v=state[el.getAttribute("data-k")]||"";
+    if(el.type==="radio") el.checked=(el.value===v); else el.value=v;
+  });
+  document.querySelectorAll("[data-w]").forEach(function(w){var k=w.getAttribute("data-w"),on=!!state[k+"_f"];w.classList.toggle("flag",on);w.querySelector(".fl").textContent=on?"Flagged":"Flag"});
+  prog();
+}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".fl");if(!b)return;var k=b.getAttribute("data-fl");state[k+"_f"]=state[k+"_f"]?"":"1";save();apply()});
+function prog(){
+  var n=0; all.forEach(function(k){if(state[k]&&String(state[k]).trim())n++});
+  document.getElementById("prog").textContent=n+"/"+all.length+" filled";
+}
+document.addEventListener("input",function(e){
+  var k=e.target.getAttribute&&e.target.getAttribute("data-k"); if(!k)return;
+  state[k]=e.target.value; save(); prog();
+});
+document.addEventListener("change",function(e){
+  var k=e.target.getAttribute&&e.target.getAttribute("data-k"); if(!k)return;
+  if(e.target.type==="radio"){state[k]=e.target.value; save(); prog();}
+});
+function v(k){var s=state[k]; return (s&&String(s).trim())?String(s).trim():"-"}
+function report(){
+  var L=[];
+  L.push("PAKISTAN AIRPORTS AUTHORITY");
+  L.push("AIRPORTS DATA SHEET FOR SVOs");
+  L.push("Airport: "+v("airport"));
+  L.push("Duration: From 0800 hrs "+v("d1")+" Nov 2026 to 0800 hrs "+v("d2")+" Nov 2026");
+  L.push("");
+  ITEMS.forEach(function(it,i){
+    L.push((i+1)+". "+it.t.toUpperCase());
+    it.f.forEach(function(f,j){ L.push("   "+(state["i"+i+"_"+j+"_f"]?"[!] ":"")+f[1]+": "+v("i"+i+"_"+j)); });
+  });
+  if(Object.keys(state).some(function(x){return /_f$/.test(x)&&state[x]})){L.push("");L.push("[!] = significant / non-compliance")}
+  return L.join("\n");
+}
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.className="show";setTimeout(function(){t.className=""},2200)}
+function build(){var t=report();var o=document.getElementById("out");o.value=t;return t}
+function copyText(t){
+  function fb(){var o=document.getElementById("out");o.value=t;o.removeAttribute("readonly");o.focus();o.select();o.setSelectionRange(0,t.length);var ok=false;try{ok=document.execCommand("copy")}catch(e){}o.setAttribute("readonly","");toast(ok?"Report copied":"Press and hold the text to copy")}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast("Report copied")},fb)}else fb();
+}
+document.getElementById("b-build").onclick=function(){build();document.getElementById("out").scrollIntoView({behavior:"smooth",block:"center"})};
+document.getElementById("b-copy").onclick=function(){copyText(build())};
+document.getElementById("b-share").onclick=function(){
+  var t=build();
+  if(navigator.share){navigator.share({title:"PAA Airports Data Sheet",text:t}).catch(function(err){if(err&&err.name!=="AbortError")copyText(t)})}
+  else copyText(t);
+};
+var armed=false,tm;
+document.getElementById("b-clear").onclick=function(){
+  var b=this;
+  if(!armed){armed=true;b.textContent="Tap again";tm=setTimeout(function(){armed=false;b.textContent="Clear"},3000);return}
+  clearTimeout(tm);armed=false;b.textContent="Clear";state={};save();apply();document.getElementById("out").value="";toast("Form cleared");
+};
+apply();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function(){
+var REM=["Speed should be mentioned in real-time figures","Provide figures only","-do-","-do-","-do-","-do-","-","-","-","Company / firm name with total number of staff deployed"];
+function cl(x){return String(x).replace(/[^\x20-\xFF\n]/g,"-")}
+function gv(st,k){var x=st[k];return(x&&String(x).trim())?cl(String(x).trim()):"-"}
+function pdfFor(st){
+  var d=new window.jspdf.jsPDF({unit:"pt",format:"letter"});
+  var X=[36,63,163,433,576],LD=12;
+  function toks(segs){var t=[];segs.forEach(function(sg){String(sg[0]).split(/(\s+)/).forEach(function(w){if(w!=="")t.push([w,sg[1],sg[2]])})});return t}
+  function wrapLines(segs,w){var out=[],cur=[],cw=0;toks(segs).forEach(function(t){d.setFont("helvetica",t[1]);d.setFontSize(9.5);var tw=d.getTextWidth(t[0]);if(/^\s+$/.test(t[0])){if(cur.length){cur.push(t);cw+=tw}return}if(cur.length&&cw+tw>w){out.push(cur);cur=[];cw=0}cur.push(t);cw+=tw});if(cur.length)out.push(cur);return out}
+  function drawLines(ls,x,y){ls.forEach(function(l,i){var xx=x;l.forEach(function(t){d.setFont("helvetica",t[1]);d.setFontSize(9.5);if(t[2])d.setTextColor(198,40,40);else d.setTextColor(0,0,0);d.text(t[0],xx,y+i*LD);xx+=d.getTextWidth(t[0])})})}
+  var name=(st.airport&&String(st.airport).trim())?cl(String(st.airport).trim()):"AIRPORT NAME";
+  d.setFont("helvetica","bold");d.setFontSize(12);d.text(name,306,52,{align:"center"});
+  var tw=d.getTextWidth(name);d.setLineWidth(.8);d.line(306-tw/2,54,306+tw/2,54);
+  d.setFontSize(10);d.setFont("helvetica","normal");
+  d.text("(Duration: From 0800 hrs "+gv(st,"d1")+" Nov 2026 to 0800 hrs "+gv(st,"d2")+" Nov 2026)",306,80,{align:"center"});
+  var y;
+  function hdr(t){d.setLineWidth(.75);d.setDrawColor(0);for(var i=0;i<4;i++){d.setFillColor(141,179,226);d.rect(X[i],t,X[i+1]-X[i],28,"FD")}
+    d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(0);d.text("Ser",X[0]+4,t+12);d.text("Item",X[1]+4,t+12);d.text("Details",(X[2]+X[3])/2,t+12,{align:"center"});d.text("Remarks /",(X[3]+X[4])/2,t+12,{align:"center"});return t+28}
+  if(Object.keys(st).some(function(x){return /_f$/.test(x)&&st[x]})){d.setFont("helvetica","bold");d.setFontSize(8.5);d.setTextColor(198,40,40);d.text("Red = significant / non-compliance",576,94,{align:"right"});d.setTextColor(0,0,0)}
+  y=hdr(100);
+  ITEMS.forEach(function(it,i){
+    var dl=[];it.f.forEach(function(f,j){var v=gv(st,"i"+i+"_"+j),fl=!!st["i"+i+"_"+j+"_f"];wrapLines([[f[1]+": ","bold",fl],[v,"normal",fl]],X[3]-X[2]-8).forEach(function(l){dl.push(l)})});
+    var il=wrapLines([[it.t,"bold"]],X[2]-X[1]-8),rl=wrapLines([[REM[i],"normal"]],X[4]-X[3]-8);
+    var n=Math.max(dl.length,il.length,rl.length),rh=n*LD+8;
+    if(y+rh>756){d.addPage();y=hdr(40)}
+    for(var c=0;c<4;c++){if(c<2)d.setFillColor(141,179,226);else d.setFillColor(255,255,255);d.rect(X[c],y,X[c+1]-X[c],rh,"FD")}
+    d.setTextColor(0);d.setFont("helvetica","normal");d.setFontSize(9.5);d.text((i+1)+".",X[0]+4,y+13);
+    drawLines(il,X[1]+4,y+13);drawLines(dl,X[2]+4,y+13);drawLines(rl,X[3]+4,y+13);
+    y+=rh;
+  });
+  return d;
+}
+function fname(st){var a=((st.airport||"airport")+"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"")||"airport";var t=new Date();return "PAA_Data_Sheet_"+a+"_"+t.getFullYear()+("0"+(t.getMonth()+1)).slice(-2)+("0"+t.getDate()).slice(-2)+".pdf"}
+var API="/api/reports",CK="paa_code";
+function code(){try{return localStorage.getItem(CK)||""}catch(e){return""}}
+function askCode(){var c=window.prompt("Enter the access code");if(c){try{localStorage.setItem(CK,c.trim())}catch(e){}}return c}
+function api(method,body,id){
+  return fetch(API+(id?"?id="+encodeURIComponent(id):""),{method:method,headers:{"Content-Type":"application/json","x-access-code":code()},body:body?JSON.stringify(body):undefined}).then(function(r){
+    if(r.status===401){try{localStorage.removeItem(CK)}catch(e){}var e=new Error("code");e.code=401;throw e}
+    if(!r.ok)throw new Error("http "+r.status);return r.json()})
+}
+function fallbackSave(blob,name){var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);toast("PDF downloaded")}
+function sharePdf(st){
+  var d;try{d=pdfFor(st)}catch(e){toast("PDF library did not load. Check your connection.");return null}
+  var blob=d.output("blob"),name=fname(st);
+  var file=new File([blob],name,{type:"application/pdf"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:"PAA Airports Data Sheet"}).catch(function(e){if(!e||e.name!=="AbortError")fallbackSave(blob,name)});
+  }else fallbackSave(blob,name);
+  return blob;
+}
+function saveReport(st){
+  if(!code()&&!askCode())return;
+  api("POST",{ts:Date.now(),airport:st.airport||"",d1:st.d1||"",d2:st.d2||"",state:st}).then(function(){toast("Saved to history");sub()},function(e){toast(e.code===401?"Wrong access code. Try again.":"Could not save to history")});
+}
+function gen(){var st=JSON.parse(JSON.stringify(state));if(sharePdf(st))saveReport(st)}
+document.getElementById("b-pdf").onclick=gen;
+document.getElementById("b-share").onclick=gen;
+document.getElementById("b-wa").onclick=function(){var t=build();if(navigator.share)navigator.share({text:t}).catch(function(){});else copyText(t)};
+function renderH(items){
+  var h=document.getElementById("hist"),m=document.getElementById("hmsg");h.textContent="";
+  m.textContent=items.length?"Stored online. Tap Load to edit again, or PDF to share it again.":"No saved reports yet. They appear here after you generate a PDF.";
+  items.forEach(function(r){
+    var box=document.createElement("div");box.className="h";
+    var b=document.createElement("b");b.textContent=r.airport||"(no airport name)";
+    var sm=document.createElement("small");sm.textContent=new Date(r.ts).toLocaleString()+" \u00b7 Duration "+(r.d1||"-")+" to "+(r.d2||"-")+" Nov";
+    var a=document.createElement("div");a.className="acts";
+    function btn(t,fn){var x=document.createElement("button");x.className="sec";x.textContent=t;x.onclick=fn;a.appendChild(x);return x}
+    btn("Load",function(){state=JSON.parse(JSON.stringify(r.state||{}));save();apply();window.scrollTo({top:0,behavior:"smooth"});toast("Report loaded")});
+    btn("PDF",function(){sharePdf(r.state||{})});
+    var armed=false,del=btn("Delete",function(){
+      if(!armed){armed=true;del.textContent="Sure?";setTimeout(function(){armed=false;del.textContent="Delete"},3000);return}
+      api("DELETE",null,r.id).then(sub,function(){toast("Could not delete")});
+    });
+    box.appendChild(b);box.appendChild(sm);box.appendChild(a);h.appendChild(box);
+  });
+}
+function sub(){
+  var m=document.getElementById("hmsg");
+  if(!code()&&!askCode()){m.textContent="Enter the access code to see saved reports. Reload the page to try again.";return}
+  api("GET").then(renderH,function(e){m.textContent=e.code===401?"Wrong access code. Reload the page and try again.":"Could not load saved reports."});
+}
+sub();
+})();
+</script>
+</body>
+</html>
