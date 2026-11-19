@@ -188,7 +188,7 @@ var armed=false,tm;
 document.getElementById("b-clear").onclick=function(){
   var b=this;
   if(!armed){armed=true;b.textContent="Tap again";tm=setTimeout(function(){armed=false;b.textContent="Clear"},3000);return}
-  clearTimeout(tm);armed=false;b.textContent="Clear";state={};save();apply();document.getElementById("out").value="";toast("Form cleared");
+  clearTimeout(tm);armed=false;b.textContent="Clear";state={};save();apply();if(window.paaNew)window.paaNew();document.getElementById("out").value="";toast("Form cleared");
 };
 apply();
 </script>
@@ -245,15 +245,28 @@ function sharePdf(st){
   }else fallbackSave(blob,name);
   return blob;
 }
-function saveReport(st){
+var curId=null;
+window.paaNew=function(){curId=null};
+function newId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function pend(){try{return JSON.parse(localStorage.getItem("paa_pending")||"[]")}catch(e){return[]}}
+function setPend(a){try{localStorage.setItem("paa_pending",JSON.stringify(a.slice(-10)))}catch(e){}}
+function saveReport(st,quiet){
   if(!code()){document.body.classList.add("locked");return}
-  api("POST",{ts:Date.now(),airport:st.airport||"",d1:st.d1||"",d2:st.d2||"",state:st}).then(function(){toast("Saved to history");sub()},function(e){toast(e.code===401?"Wrong access code. Try again.":"Could not save to history")});
+  if(!curId)curId=newId();
+  var rec={id:curId,ts:Date.now(),airport:st.airport||"",d1:st.d1||"",d2:st.d2||"",state:st};
+  return api("POST",rec).then(function(){if(!quiet)toast("Saved to history");sub()},function(e){
+    if(e&&e.code===401){toast("Wrong access code. Try again.");return}
+    var p=pend().filter(function(x){return x.id!==rec.id});p.push(rec);setPend(p);toast("Could not save now. It will retry automatically.")});
 }
-function gen(){var st=JSON.parse(JSON.stringify(state));if(sharePdf(st))saveReport(st)}
+function flush(){var p=pend();if(!p.length||!code())return;setPend([]);p.forEach(function(rec){api("POST",rec).catch(function(e){if(!e||e.code!==401){var q=pend();q.push(rec);setPend(q)}})})}
+window.addEventListener("online",flush);
+function autoSave(st){saveReport(st||JSON.parse(JSON.stringify(state)),false)}
+function gen(){var st=JSON.parse(JSON.stringify(state));sharePdf(st);autoSave(st)}
 document.getElementById("b-pdf").onclick=gen;
 document.getElementById("b-save").onclick=function(){saveReport(JSON.parse(JSON.stringify(state)))};
 document.getElementById("b-share").onclick=gen;
-document.getElementById("b-wa").onclick=function(){var t=build();if(navigator.share)navigator.share({text:t}).catch(function(){});else copyText(t)};
+document.getElementById("b-wa").onclick=function(){var t=build();if(navigator.share)navigator.share({text:t}).catch(function(){});else copyText(t);autoSave()};
+document.getElementById("b-copy").onclick=function(){copyText(build());autoSave()};
 function renderH(items){
   var h=document.getElementById("hist"),m=document.getElementById("hmsg");h.textContent="";
   m.textContent=items.length?"Stored online. Tap Load to edit again, or PDF to share it again.":"No saved reports yet. They appear here after you generate a PDF.";
@@ -263,7 +276,7 @@ function renderH(items){
     var sm=document.createElement("small");sm.textContent=new Date(r.ts).toLocaleString()+" \u00b7 Duration "+dt(r.d1)+" to "+dt(r.d2);
     var a=document.createElement("div");a.className="acts";
     function btn(t,fn){var x=document.createElement("button");x.className="sec";x.textContent=t;x.onclick=fn;a.appendChild(x);return x}
-    btn("Load",function(){state=JSON.parse(JSON.stringify(r.state||{}));save();apply();window.scrollTo({top:0,behavior:"smooth"});toast("Report loaded")});
+    btn("Load",function(){curId=/^report-/.test(r.id)?r.id.slice(7):null;state=JSON.parse(JSON.stringify(r.state||{}));save();apply();window.scrollTo({top:0,behavior:"smooth"});toast("Report loaded")});
     btn("PDF",function(){sharePdf(r.state||{})});
     var armed=false,del=btn("Delete",function(){
       if(!armed){armed=true;del.textContent="Sure?";setTimeout(function(){armed=false;del.textContent="Delete"},3000);return}
@@ -275,12 +288,12 @@ function renderH(items){
 function sub(){
   var m=document.getElementById("hmsg");
   if(!code()){document.body.classList.add("locked");return}
-  api("GET").then(renderH,function(e){m.textContent=e.code===401?"Wrong access code. Reload the page and try again.":"Could not load saved reports."});
+  api("GET").then(function(r){renderH(r);flush()},function(e){m.textContent=e.code===401?"Wrong access code. Reload the page and try again.":"Could not load saved reports."});
 }
 function tryCode(c){
   var e=document.getElementById("lerr");e.textContent="Checking...";
   try{localStorage.setItem(CK,c)}catch(x){}
-  api("GET").then(function(r){e.textContent="";document.body.classList.remove("locked");renderH(r)},function(err){
+  api("GET").then(function(r){e.textContent="";document.body.classList.remove("locked");renderH(r);flush()},function(err){
     try{localStorage.removeItem(CK)}catch(x){}
     e.textContent=(err&&err.code===401)?"Wrong access code. Try again.":"Server error. Check the Sanity settings in Vercel."});
 }
