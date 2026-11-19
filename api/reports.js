@@ -30,6 +30,12 @@ module.exports = async (req, res) => {
         d2: String(b.d2 || "").slice(0, 10),
         state: JSON.stringify(b.state || {}).slice(0, 100000),
       };
+      const rid = /^[A-Za-z0-9_-]{6,60}$/.test(String(b.id || "")) ? String(b.id) : null;
+      if (rid) {
+        doc._id = "report-" + rid;
+        const saved = await client.createOrReplace(doc);
+        return res.json({ id: saved._id });
+      }
       const created = await client.create(doc);
       return res.json({ id: created._id });
     }
