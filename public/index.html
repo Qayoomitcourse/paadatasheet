@@ -25,7 +25,7 @@ header p{margin:0;color:#CFE0F5;font-size:13px}
 .body{padding:10px 12px 12px;display:grid;gap:12px}
 .hint{font-size:12.5px;color:var(--mid);font-style:italic;margin:0}
 label.l,.l{display:block;font-weight:700;font-size:13.5px;margin-bottom:5px;color:var(--ink)}
-input[type=text],input[type=number],textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--tint);color:var(--ink);outline:none}
+input[type=text],input[type=number],input[type=datetime-local],textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--tint);color:var(--ink);outline:none}
 input:focus,textarea:focus{border-color:var(--mid)}
 textarea{min-height:76px;resize:vertical}
 .seg{display:flex;gap:8px;flex-wrap:wrap}
@@ -57,9 +57,15 @@ button{font:inherit;font-weight:700;font-size:15px;border:0;border-radius:10px;p
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .flag .l{color:#FF8A8A}:root:not([data-theme="light"]) .flag input[type=text],:root:not([data-theme="light"]) .flag textarea{background:#3A1E22;color:#E6EDF7}}
 :root[data-theme="dark"] .flag .l{color:#FF8A8A}:root[data-theme="dark"] .flag input[type=text],:root[data-theme="dark"] .flag textarea{background:#3A1E22;color:#E6EDF7}
 .legend{font-size:13px;color:#C62828;font-weight:700;margin:0 0 12px}
+body.locked>*:not(#lock){display:none!important}
+#lock{display:none}body.locked #lock{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px}
+#lock .card{width:100%;max-width:380px}
+#lock input{width:100%;font:inherit;font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--tint);color:var(--ink)}
+#lerr{color:#C62828;font-weight:700;margin:0;min-height:1.2em}
 </style>
 </head>
-<body>
+<body class="locked">
+<div id="lock"><div class="card"><h2>PAA Airports Data Sheet</h2><div class="body"><p class="hint">Enter the access code to open the form.</p><input type="password" id="code" placeholder="Access code" autocomplete="current-password"><button class="pri" id="unlock">Open</button><p id="lerr" role="alert"></p></div></div></div>
 <header>
   <small>PAKISTAN AIRPORTS AUTHORITY</small>
   <h1>Airports Data Sheet</h1>
@@ -68,10 +74,10 @@ button{font:inherit;font-weight:700;font-size:15px;border:0;border-radius:10px;p
 <div class="wrap">
   <div class="card top"><h2>Airport &amp; duration</h2><div class="body">
     <div><label class="l" for="airport">Airport name</label><input type="text" id="airport" data-k="airport" autocomplete="off" placeholder="e.g. JIAP Karachi"></div>
-    <p>Duration: from 0800 hrs to 0800 hrs</p>
-    <div class="row">
-      <div><label class="l" for="d1">From (Nov 2026)</label><input type="number" inputmode="numeric" id="d1" data-k="d1" placeholder="Day"></div>
-      <div><label class="l" for="d2">To (Nov 2026)</label><input type="number" inputmode="numeric" id="d2" data-k="d2" placeholder="Day"></div>
+    <p>Duration of observation (date and time)</p>
+    <div class="row" style="grid-template-columns:1fr">
+      <div><label class="l" for="d1">From (date and time)</label><input type="datetime-local" id="d1" data-k="d1"></div>
+      <div><label class="l" for="d2">To (date and time)</label><input type="datetime-local" id="d2" data-k="d2"></div>
     </div>
   </div></div>
   <p class="legend">Tap “Flag” on any entry to mark it in red as significant or non-compliance. Flagged entries print in red in the PDF.</p>
@@ -85,13 +91,14 @@ button{font:inherit;font-weight:700;font-size:15px;border:0;border-radius:10px;p
 <div class="bar">
   <div class="prog" id="prog">0/0</div>
   <button class="sec" id="b-clear">Clear</button>
+  <button class="sec" id="b-save">Save</button>
   <button class="pri" id="b-share">PDF &amp; Share</button>
 </div>
 <div id="toast" role="status"></div>
 <script>
 var SA=["S/A","U/S"];
 var ITEMS=[
-{t:"WIFI",h:"Speed should be mentioned in real-time figures",f:[["n","Max speed in Mbps"],["n","Min speed in Mbps"]]},
+{t:"WIFI",h:"Speed should be mentioned in real-time figures",f:[["d","Max speed in Mbps"],["d","Min speed in Mbps"]]},
 {t:"Helpdesks",h:"Provide figures only",f:[["n","Total Number of Helpdesks"],["n","Number of Helpdesks manned"]]},
 {t:"Catering / Food",h:"Provide figures only",f:[["n","Total Number of Food Outlets around the airport"],["s","Quality, Hygiene and Pricing",["Satisfactory","Unsatisfactory"]],["a","Outlet name(s), if unsatisfactory"]]},
 {t:"Washrooms / Toilets",h:"Provide figures only",f:[["n","Total"],["s","Condition",["Clean and satisfactory","Not satisfactory"]]]},
@@ -120,7 +127,7 @@ ITEMS.forEach(function(it,i){
     }else if(f[0]==="a"){
       html+='<div data-w="'+k+'"><div class="lr"><label class="l" for="'+k+'">'+esc(f[1])+'</label>'+FLB(k)+'</div><textarea id="'+k+'" data-k="'+k+'"></textarea></div>';
     }else{
-      html+='<div data-w="'+k+'"><div class="lr"><label class="l" for="'+k+'">'+esc(f[1])+'</label>'+FLB(k)+'</div><input type="text" inputmode="decimal" id="'+k+'" data-k="'+k+'" autocomplete="off"></div>';
+      html+='<div data-w="'+k+'"><div class="lr"><label class="l" for="'+k+'">'+esc(f[1])+'</label>'+FLB(k)+'</div><input type="text" id="'+k+'" data-k="'+k+'" autocomplete="off"></div>';
     }
   });
   html+='</div></section>';
@@ -148,13 +155,14 @@ document.addEventListener("change",function(e){
   var k=e.target.getAttribute&&e.target.getAttribute("data-k"); if(!k)return;
   if(e.target.type==="radio"){state[k]=e.target.value; save(); prog();}
 });
+function dt(x){var m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(x||"");if(!m)return(x&&String(x).trim())||"-";var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return m[4]+m[5]+" hrs, "+m[3]+" "+M[+m[2]-1]+" "+m[1]}
 function v(k){var s=state[k]; return (s&&String(s).trim())?String(s).trim():"-"}
 function report(){
   var L=[];
   L.push("PAKISTAN AIRPORTS AUTHORITY");
   L.push("AIRPORTS DATA SHEET FOR SVOs");
   L.push("Airport: "+v("airport"));
-  L.push("Duration: From 0800 hrs "+v("d1")+" Nov 2026 to 0800 hrs "+v("d2")+" Nov 2026");
+  L.push("Duration: From "+dt(state.d1)+" to "+dt(state.d2));
   L.push("");
   ITEMS.forEach(function(it,i){
     L.push((i+1)+". "+it.t.toUpperCase());
@@ -200,7 +208,7 @@ function pdfFor(st){
   d.setFont("helvetica","bold");d.setFontSize(12);d.text(name,306,52,{align:"center"});
   var tw=d.getTextWidth(name);d.setLineWidth(.8);d.line(306-tw/2,54,306+tw/2,54);
   d.setFontSize(10);d.setFont("helvetica","normal");
-  d.text("(Duration: From 0800 hrs "+gv(st,"d1")+" Nov 2026 to 0800 hrs "+gv(st,"d2")+" Nov 2026)",306,80,{align:"center"});
+  d.text("(Duration: From "+cl(dt(st.d1))+" to "+cl(dt(st.d2))+")",306,80,{align:"center"});
   var y;
   function hdr(t){d.setLineWidth(.75);d.setDrawColor(0);for(var i=0;i<4;i++){d.setFillColor(141,179,226);d.rect(X[i],t,X[i+1]-X[i],28,"FD")}
     d.setFont("helvetica","bold");d.setFontSize(10);d.setTextColor(0);d.text("Ser",X[0]+4,t+12);d.text("Item",X[1]+4,t+12);d.text("Details",(X[2]+X[3])/2,t+12,{align:"center"});d.text("Remarks /",(X[3]+X[4])/2,t+12,{align:"center"});return t+28}
@@ -224,7 +232,7 @@ function code(){try{return localStorage.getItem(CK)||""}catch(e){return""}}
 function askCode(){var c=window.prompt("Enter the access code");if(c){try{localStorage.setItem(CK,c.trim())}catch(e){}}return c}
 function api(method,body,id){
   return fetch(API+(id?"?id="+encodeURIComponent(id):""),{method:method,headers:{"Content-Type":"application/json","x-access-code":code()},body:body?JSON.stringify(body):undefined}).then(function(r){
-    if(r.status===401){try{localStorage.removeItem(CK)}catch(e){}var e=new Error("code");e.code=401;throw e}
+    if(r.status===401){try{localStorage.removeItem(CK)}catch(e){}document.body.classList.add("locked");var e=new Error("code");e.code=401;throw e}
     if(!r.ok)throw new Error("http "+r.status);return r.json()})
 }
 function fallbackSave(blob,name){var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);toast("PDF downloaded")}
@@ -238,11 +246,12 @@ function sharePdf(st){
   return blob;
 }
 function saveReport(st){
-  if(!code()&&!askCode())return;
+  if(!code()){document.body.classList.add("locked");return}
   api("POST",{ts:Date.now(),airport:st.airport||"",d1:st.d1||"",d2:st.d2||"",state:st}).then(function(){toast("Saved to history");sub()},function(e){toast(e.code===401?"Wrong access code. Try again.":"Could not save to history")});
 }
 function gen(){var st=JSON.parse(JSON.stringify(state));if(sharePdf(st))saveReport(st)}
 document.getElementById("b-pdf").onclick=gen;
+document.getElementById("b-save").onclick=function(){saveReport(JSON.parse(JSON.stringify(state)))};
 document.getElementById("b-share").onclick=gen;
 document.getElementById("b-wa").onclick=function(){var t=build();if(navigator.share)navigator.share({text:t}).catch(function(){});else copyText(t)};
 function renderH(items){
@@ -251,7 +260,7 @@ function renderH(items){
   items.forEach(function(r){
     var box=document.createElement("div");box.className="h";
     var b=document.createElement("b");b.textContent=r.airport||"(no airport name)";
-    var sm=document.createElement("small");sm.textContent=new Date(r.ts).toLocaleString()+" \u00b7 Duration "+(r.d1||"-")+" to "+(r.d2||"-")+" Nov";
+    var sm=document.createElement("small");sm.textContent=new Date(r.ts).toLocaleString()+" \u00b7 Duration "+dt(r.d1)+" to "+dt(r.d2);
     var a=document.createElement("div");a.className="acts";
     function btn(t,fn){var x=document.createElement("button");x.className="sec";x.textContent=t;x.onclick=fn;a.appendChild(x);return x}
     btn("Load",function(){state=JSON.parse(JSON.stringify(r.state||{}));save();apply();window.scrollTo({top:0,behavior:"smooth"});toast("Report loaded")});
@@ -265,10 +274,19 @@ function renderH(items){
 }
 function sub(){
   var m=document.getElementById("hmsg");
-  if(!code()&&!askCode()){m.textContent="Enter the access code to see saved reports. Reload the page to try again.";return}
+  if(!code()){document.body.classList.add("locked");return}
   api("GET").then(renderH,function(e){m.textContent=e.code===401?"Wrong access code. Reload the page and try again.":"Could not load saved reports."});
 }
-sub();
+function tryCode(c){
+  var e=document.getElementById("lerr");e.textContent="Checking...";
+  try{localStorage.setItem(CK,c)}catch(x){}
+  api("GET").then(function(r){e.textContent="";document.body.classList.remove("locked");renderH(r)},function(err){
+    try{localStorage.removeItem(CK)}catch(x){}
+    e.textContent=(err&&err.code===401)?"Wrong access code. Try again.":"Server error. Check the Sanity settings in Vercel."});
+}
+document.getElementById("unlock").onclick=function(){var c=document.getElementById("code").value.trim();if(c)tryCode(c)};
+document.getElementById("code").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("unlock").click()});
+if(code())tryCode(code());
 })();
 </script>
 </body>
